@@ -38,6 +38,7 @@ void loop() {
         Serial.print(":");
         Serial.println(client.remotePort());
         client.write((const uint8_t *) &tosend, sizeof(Trans));
+        Serial.print("Sent=");
         printTrans(tosend);
         Serial.println("");
         client.flush();

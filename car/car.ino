@@ -23,7 +23,7 @@ WiFiClient client;
 
  
 unsigned long previousMillis = 0;
-unsigned long interval = 30000;
+unsigned long interval = 1000;
 
 // https://randomnerdtutorials.com/solved-reconnect-esp32-to-wifi/
 void initWiFi() {
@@ -57,20 +57,16 @@ void loop() {
   }
 
   if (client.connect(serverIP, serverPort)) {
-    Serial.println("访问成功");
-
     Trans next;
 
+    while(client.connected() || client.available()) {
     if (client.read((uint8_t *) &next, sizeof(Trans))==sizeof(Trans)){
       got = next;
       Serial.print("读取到数据：");
       printTrans(got);
-    } else {
-      Serial.print("No Data");
     }
-        client.stop();
-  } else {
-        Serial.println("访问失败");
-        client.stop();
     }
+
+        client.stop();
+  }
 }
