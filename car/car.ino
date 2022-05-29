@@ -1,5 +1,56 @@
 #include <WiFi.h>
 
+typedef struct
+{
+    double Target; // 期望
+    double P; // 比例系数
+    double I; // 积分系数
+    double D; // 微分系数
+    double T_Limit; // 积分限幅
+    double Limit; // 计算结果限幅
+    double Error; // 偏差
+    double LastError; // 上次的值
+    double PrevError; // 上上次偏差
+    double SumError; // 累计误差
+    double Realize; // 计算出的差值
+} PidNode;
+
+double _limit(double x, double min, double max) {
+    return x > max ? max : x < min ? min : x;
+}
+
+/*
+ * @func PID参数初始化
+ */
+void PID_ParameterInit(PidNode *pid, double P, double I, double D,
+                       double Target, double T_Limit, double Limit) {
+    pid->P = P;
+    pid->I = I;
+    pid->D = D;
+    pid->Target = Target;
+    pid->T_Limit = T_Limit;
+    pid->Limit = Limit;
+
+    pid->LastError = 0;
+    pid->PrevError = 0;
+    pid->SumError = 0;
+}
+// 位置式PID控制
+double PID_PlaceDouble(PidNode *pid, double target, double now) {
+    pid->Error = target - now;   // 计算当前误差
+    pid->SumError += pid->Error; // 误差积分
+    pid->SumError = _limit(pid->SumError, -pid->T_Limit, pid->T_Limit);
+
+    pid->Realize = (pid->P * pid->Error + pid->I * pid->SumError +
+                    pid->D * (pid->Error - pid->LastError));
+    pid->LastError = pid->Error; // 更新上次误差
+
+    pid->Realize = _limit(pid->Realize, -pid->Limit, pid->Limit);
+    return pid->Realize; // 返回输出实际值
+}
+
+
+
 typedef struct Trans {
   int64_t girl;
 } Trans;
@@ -51,6 +102,7 @@ void initWiFi() {
 #define BEEP_VALID false
 
 #define PWM_FREQ 5000
+// 0~256
 #define PWM_RESOLUTION 8
 
 typedef enum {
@@ -59,19 +111,46 @@ typedef enum {
     STATE_STOP
 } State;
 
+// todo
+#define ACCEPTABLE_DIFF 100
+
 State state = STATE_START;
 
 hw_timer_t * pid_timer = NULL;
 
+PidNode pid;
+
+void IRAM_ATTR writeEngine(int chPostive, int chNegative, int engine) {
+    if (engine > 0) {
+        ledcWrite(chPostive, engine);
+        ledcWrite(chNegative, 0);
+    } else {
+        ledcWrite(chPostive, 0);
+        ledcWrite(chNegative, -engine);
+    }
+}
+
 void IRAM_ATTR pid_timer_callback() {
-    // TODO
+    if (state == STATE_GOING) {
+        int engine = (int) PID_PlaceDouble(&pid, 0, got.girl);
+        writeEngine(ENGINE1_POSITIVE_CH, ENGINE1_NEGATIVE_CH, engine);
+        writeEngine(ENGINE2_POSITIVE_CH, ENGINE2_NEGATIVE_CH, engine);
+        if(ABS(got.girl)<ACCEPTABLE_DIFF){
+            state = STATE_STOP;
+            // todo
+        }
+    }
 }
 
 hw_timer_t * beep_timer = NULL;
 void IRAM_ATTR beep_timer_callback() {
     static bool beeping = false;
-    digitalWrite(BEEP_PIN, BEEP_VALID == beeping ? HIGH : LOW);
-    beeping = !beeping;
+    if (state == STATE_GOING) {
+        digitalWrite(BEEP_PIN, BEEP_VALID == beeping ? HIGH : LOW);
+        beeping = !beeping;
+    } else if (state == STATE_STOP) {
+        digitalWrite(BEEP_PIN, BEEP_VALID == true ? HIGH : LOW);
+    }
 }
 
 void setup() {
@@ -104,6 +183,8 @@ void setup() {
     timerAlarmWrite(beep_timer, 1000000/5, true);
 
     pinMode(BEEP_PIN, OUTPUT);
+
+    PID_ParameterInit(&pid, 128, 0, 0, 0, 256, 256);
 }
 
 void loop() {
