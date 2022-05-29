@@ -70,7 +70,7 @@ bool IRAM_ATTR valid_state() {
 Trans tosend = (Trans) {.girl = 0};
 
 void IRAM_ATTR save_sensor() {
-    tosend.girl = sensor_a.last_valid_start - sensor_b.last_valid_start;
+    tosend = (Trans) {.girl = sensor_a.last_valid_start - sensor_b.last_valid_start};
 }
 
 

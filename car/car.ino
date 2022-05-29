@@ -38,12 +38,34 @@ void initWiFi() {
   Serial.println(WiFi.localIP());
 }
 
+#define ENGINE1_POSITIVE 34
+#define ENGINE1_POSITIVE_CH 0
+#define ENGINE1_NEGATIVE 35
+#define ENGINE1_NEGATIVE_CH 1
+#define ENGINE2_POSITIVE 32
+#define ENGINE2_POSITIVE_CH 2
+#define ENGINE2_NEGATIVE 33
+#define ENGINE2_NEGATIVE_CH 3
+
+#define PWM_FREQ 5000
+#define PWM_RESOLUTION 8
+
 void setup() {
   Serial.begin(115200);
   initWiFi();
   Serial.print("RSSI: ");
   Serial.println(WiFi.RSSI());
+
+    ledcSetup(ENGINE1_POSITIVE_CH, PWM_FREQ, PWM_RESOLUTION);
+    ledcAttachPin(ENGINE1_POSITIVE, ENGINE1_POSITIVE_CH);
+    ledcSetup(ENGINE1_NEGATIVE_CH, PWM_FREQ, PWM_RESOLUTION);
+    ledcAttachPin(ENGINE1_NEGATIVE, ENGINE1_NEGATIVE_CH);
+    ledcSetup(ENGINE2_POSITIVE_CH, PWM_FREQ, PWM_RESOLUTION);
+    ledcAttachPin(ENGINE2_POSITIVE, ENGINE2_POSITIVE_CH);
+    ledcSetup(ENGINE2_NEGATIVE_CH, PWM_FREQ, PWM_RESOLUTION);
+    ledcAttachPin(ENGINE2_NEGATIVE, ENGINE2_NEGATIVE_CH);
 }
+
 
 void loop() {
   unsigned long currentMillis = millis();
