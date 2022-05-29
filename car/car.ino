@@ -47,6 +47,9 @@ void initWiFi() {
 #define ENGINE2_NEGATIVE 33
 #define ENGINE2_NEGATIVE_CH 3
 
+#define BEEP_PIN 0
+#define BEEP_VALID false
+
 #define PWM_FREQ 5000
 #define PWM_RESOLUTION 8
 
@@ -62,6 +65,13 @@ hw_timer_t * pid_timer = NULL;
 
 void IRAM_ATTR pid_timer_callback() {
     // TODO
+}
+
+hw_timer_t * beep_timer = NULL;
+void IRAM_ATTR beep_timer_callback() {
+    static bool beeping = false;
+    digitalWrite(BEEP_PIN, BEEP_VALID == beeping ? HIGH : LOW);
+    beeping = !beeping;
 }
 
 void setup() {
@@ -86,6 +96,14 @@ void setup() {
     pid_timer = timerBegin(0, 80, true);
     timerAttachInterrupt(pid_timer, &pid_timer_callback, true);
     timerAlarmWrite(pid_timer, 1000, true);
+
+    beep_timer = timerBegin(1, 80, true);
+    timerAttachInterrupt(beep_timer, &beep_timer_callback, true);
+    // 1000000 = 1s
+    // 0.2s
+    timerAlarmWrite(beep_timer, 1000000/5, true);
+
+    pinMode(BEEP_PIN, OUTPUT);
 }
 
 void loop() {
