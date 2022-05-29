@@ -9,7 +9,7 @@ typedef struct Trans {
   int64_t girl;
 } Trans;
 
-void printTrans(Trans pretty) {
+void printTrans(struct Trans pretty) {
   Serial.print("Trans:");
   Serial.print(pretty.girl);
 }
@@ -26,7 +26,7 @@ void printTrans(Trans pretty) {
 
 typedef unsigned long micros_t;
 
-typedef struct {
+typedef struct Sensor {
     micros_t last_valid_start;
     micros_t last_valid_end;
     bool valid;
@@ -36,7 +36,7 @@ Sensor sensor_a,sensor_b,sensor_c;
 
 #define SENSOR_VALID 0
 
-void init_Sensor(Sensor* x, int inPin) {
+void init_Sensor(struct Sensor* x, int inPin) {
     micros_t t = micros();
     x->last_valid_start = t;
     x->last_valid_end = t;
@@ -56,6 +56,7 @@ void IRAM_ATTR handle_Sensor(Sensor* x, int pin) {
     x->valid = valid;
 }
 
+// unsafe
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 bool IRAM_ATTR valid_state() {

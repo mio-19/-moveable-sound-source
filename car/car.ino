@@ -55,7 +55,7 @@ typedef struct Trans {
   int64_t girl;
 } Trans;
 
-void printTrans(Trans pretty) {
+void printTrans(struct Trans pretty) {
   Serial.print("Trans:");
   Serial.print(pretty.girl);
 }
@@ -129,6 +129,9 @@ void IRAM_ATTR writeEngine(int chPostive, int chNegative, int engine) {
         ledcWrite(chNegative, -engine);
     }
 }
+
+// unsafe
+#define ABS(x) ((x) < 0 ? -(x) : (x))
 
 void IRAM_ATTR pid_timer_callback() {
     if (state == STATE_GOING) {
