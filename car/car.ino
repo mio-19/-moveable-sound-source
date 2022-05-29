@@ -50,6 +50,20 @@ void initWiFi() {
 #define PWM_FREQ 5000
 #define PWM_RESOLUTION 8
 
+typedef enum {
+    STATE_START,
+    STATE_GOING,
+    STATE_STOP
+} State;
+
+State state = STATE_START;
+
+hw_timer_t * pid_timer = NULL;
+
+void IRAM_ATTR pid_timer_callback() {
+    // TODO
+}
+
 void setup() {
   Serial.begin(115200);
   initWiFi();
@@ -58,14 +72,21 @@ void setup() {
 
     ledcSetup(ENGINE1_POSITIVE_CH, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(ENGINE1_POSITIVE, ENGINE1_POSITIVE_CH);
+    ledcWrite(ENGINE1_POSITIVE_CH, 0);
     ledcSetup(ENGINE1_NEGATIVE_CH, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(ENGINE1_NEGATIVE, ENGINE1_NEGATIVE_CH);
+    ledcWrite(ENGINE1_NEGATIVE_CH, 0);
     ledcSetup(ENGINE2_POSITIVE_CH, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(ENGINE2_POSITIVE, ENGINE2_POSITIVE_CH);
+    ledcWrite(ENGINE2_POSITIVE_CH, 0);
     ledcSetup(ENGINE2_NEGATIVE_CH, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(ENGINE2_NEGATIVE, ENGINE2_NEGATIVE_CH);
-}
+    ledcWrite(ENGINE2_NEGATIVE_CH, 0);
 
+    pid_timer = timerBegin(0, 80, true);
+    timerAttachInterrupt(pid_timer, &pid_timer_callback, true);
+    timerAlarmWrite(pid_timer, 1000, true);
+}
 
 void loop() {
   unsigned long currentMillis = millis();

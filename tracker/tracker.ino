@@ -108,7 +108,7 @@ void setup() {
 
     sensor_check_timer = timerBegin(0, 80, true);
     timerAttachInterrupt(sensor_check_timer, &sensor_isr, true);
-    timerAlarmWrite(sensor_check_timer, 1000000, true);
+    timerAlarmWrite(sensor_check_timer, 10000, true);
     timerAlarmEnable(sensor_check_timer);
 }
 
