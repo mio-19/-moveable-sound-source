@@ -55,4 +55,22 @@ void loop() {
     WiFi.reconnect();
     previousMillis = currentMillis;
   }
+
+  if (client.connect(serverIP, serverPort)) {
+    Serial.println("访问成功");
+
+    Trans next;
+
+    if (client.read((uint8_t *) &next, sizeof(Trans))==sizeof(Trans)){
+      got = next;
+      Serial.print("读取到数据：");
+      printTrans(got);
+    } else {
+      Serial.print("No Data");
+    }
+        client.stop();
+  } else {
+        Serial.println("访问失败");
+        client.stop();
+    }
 }
