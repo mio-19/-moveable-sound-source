@@ -24,11 +24,15 @@ void printTrans(struct Trans pretty) {
 // 0.1s
 #define MAX_DIFF 100000
 
+// 0.01s
+#define MAX_ERROR 10000
+
 typedef unsigned long micros_t;
 
 typedef struct Sensor {
     micros_t last_valid_start;
     micros_t last_valid_end;
+    unsigned long errors;
     bool valid;
 } Sensor;
 
@@ -51,9 +55,19 @@ void IRAM_ATTR handle_Sensor(Sensor* x, int pin) {
         if (!x->valid) {
             x->last_valid_start = t;
         }
+        x->errors = 0;
         x->last_valid_end = t;
+        x->valid = true;
+    } else {
+      if (x->valid) {
+        x->last_valid_end = t;
+        if (x->errors < MAX_ERROR) {
+          x->errors++;
+        } else {
+          x->valid = false;
+        }
+      }
     }
-    x->valid = valid;
 }
 
 // unsafe
