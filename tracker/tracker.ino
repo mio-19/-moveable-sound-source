@@ -36,6 +36,17 @@ typedef struct Sensor {
     bool valid;
 } Sensor;
 
+void printSensor(Sensor pretty) {
+  Serial.print("Sensor: last_valid_start=");
+    Serial.print(pretty.last_valid_start);
+    Serial.print(" last_valid_end=");
+    Serial.print(pretty.last_valid_end);
+    Serial.print(" errors=");
+    Serial.print(pretty.errors);
+    Serial.print(" valid=");
+    Serial.print(pretty.valid);
+}
+
 Sensor sensor_a,sensor_b,sensor_c;
 
 #define SENSOR_VALID 0
@@ -86,6 +97,15 @@ Trans tosend = (Trans) {.girl = 0};
 
 void IRAM_ATTR save_sensor() {
     tosend = (Trans) {.girl = sensor_a.last_valid_start - sensor_b.last_valid_start};
+    Serial.print("A=");
+    printSensor(sensor_a);
+    Serial.println("");
+    Serial.print("B=");
+    printSensor(sensor_b);
+    Serial.println("");
+    Serial.print("C=");
+    printSensor(sensor_c);
+    Serial.println("");
 }
 
 
